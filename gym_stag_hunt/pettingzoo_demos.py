@@ -3,14 +3,14 @@ from time import sleep
 from gym_stag_hunt.envs.escalation import EscalationEnv
 from gym_stag_hunt.envs.harvest import HarvestEnv
 from gym_stag_hunt.envs.hunt import HuntEnv
-from gym_stag_hunt.envs.simple import SimpleEnv
+from gym_stag_hunt.envs import pettingzoo_simple, pettingzoo_hunt, pettingzoo_harvest, pettingzoo_escalation
 from gym_stag_hunt.src.games.abstract_grid_game import UP, LEFT, DOWN, RIGHT, STAND
 
 ENVS = {
-    'CLASSIC': SimpleEnv,
-    'HUNT': HuntEnv,
-    'HARVEST': HarvestEnv,
-    'ESCALATION': EscalationEnv
+    'CLASSIC': pettingzoo_simple.parallel_env,
+    'HUNT': pettingzoo_hunt.parallel_env,
+    'HARVEST': pettingzoo_harvest.parallel_env,
+    'ESCALATION': pettingzoo_escalation.parallel_env
 }
 
 
@@ -51,7 +51,6 @@ def manual_input():
 
 
 ENV = 'CLASSIC'
-acc_rewards = [0, 0]
 
 if __name__ == "__main__":
     if ENV == 'CLASSIC':
@@ -59,18 +58,12 @@ if __name__ == "__main__":
     else:
         env = ENVS[ENV](obs_type='image', enable_multiagent=True)
     obs = env.reset()
-    for i in range(1000):
-        actions = [env.action_space.sample(), env.action_space.sample()]
-
-        obs, rewards, done, info = env.step(actions=actions)
-        acc_rewards[0] += rewards[0]
-        acc_rewards[1] += rewards[1]
+    for i in range(10000):
+        actions = {agent: env.action_spaces[agent].sample() for agent in env.agents}
+        obs, rewards, done, info = env.step(actions)
         print(rewards)
         # print_ep(obs, rewards, done, info)
         # sleep(.4)
-        # if ENV == 'CLASSIC':
-        #     env.render(rewards=rewards)
-        # else:
-        #     env.render(mode='human')
+        # env.render(mode='human')
     env.close()
     quit()
